@@ -205,3 +205,7 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- IGNORE BELOW THIS LINE ---
+# ignore model files
+gemma-3-4b-it/

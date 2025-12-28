@@ -1,0 +1,9 @@
+# git clone https://hf_YOUR_TOKEN_HERE@huggingface.co/google/gemma-3-4b-it
+huggingface_hub
+transformers
+torch 
+pillow 
+requests
+accelerate
+langgraph
+langchain
