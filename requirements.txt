@@ -1,9 +1,41 @@
 # git clone https://hf_YOUR_TOKEN_HERE@huggingface.co/google/gemma-3-4b-it
-huggingface_hub
-transformers
-torch 
-pillow 
-requests
-accelerate
-langgraph
-langchain
+# huggingface_hub
+# transformers
+# torch 
+# pillow 
+# requests
+# accelerate
+# langgraph
+# langchain
+
+# LangChain Ecosystem - Updated to 0.3+ Modular Architecture
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-postgres>=0.0.12  # IMPORTANT: This newer version supports modern langchain-core
+langchain-text-splitters>=0.3.0
+
+# LLM & Embeddings
+transformers>=4.36.0
+torch>=2.1.0
+sentence-transformers>=2.2.2
+accelerate>=0.25.0
+
+# Vector Store & Database
+pgvector>=0.2.5
+psycopg[binary,pool]        # Modern driver required by new langchain-postgres
+sqlalchemy>=2.0.29
+
+# PDF Processing
+pypdf>=3.17.4
+
+# API & Web
+fastapi>=0.109.0
+uvicorn[standard]>=0.25.0
+python-multipart>=0.0.6
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+
+torchvision
+torchaudio
