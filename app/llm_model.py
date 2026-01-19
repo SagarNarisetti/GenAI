@@ -3,6 +3,10 @@ os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_huggingface import HuggingFacePipeline
+from typing import List, Optional, Any
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv()
 
 class GemmaChat:
     """Chatbot using local Gemma 3 model with LangChain."""
@@ -28,10 +32,10 @@ class GemmaChat:
         # 2. Precision Selection (bfloat16 is preferred for Gemma 3)
         dt = torch.bfloat16 if self.device in ["cuda", "mps"] else torch.float32
 
-        tokenizer = AutoTokenizer.from_pretrained(self.model_path)
+        self.tokenizer = AutoTokenizer.from_pretrained(self.model_path)
         
         # 3. Model Loading
-        model = AutoModelForCausalLM.from_pretrained(
+        self.model = AutoModelForCausalLM.from_pretrained(
             self.model_path,
             torch_dtype=dt,
             low_cpu_mem_usage=True,
@@ -41,8 +45,8 @@ class GemmaChat:
         # Create pipeline
         pipe = pipeline(
             "text-generation",
-            model=model,
-            tokenizer=tokenizer,
+            model=self.model,
+            tokenizer=self.tokenizer,
             max_new_tokens=1024,
             temperature=0.7,
             return_full_text=False 
@@ -65,13 +69,11 @@ class GemmaChat:
         
         response = self.llm.invoke(prompt)
         
-        # Gemma 3 responses are clean with return_full_text=False, 
-        # but we strip just in case.
         clean_response = response.strip()
 
         self.history.append((message, clean_response))
         return clean_response
-    
+
     def clear_history(self):
         self.history = []
         print("History cleared.\n")
@@ -88,8 +90,29 @@ class GemmaChat:
             if user_input:
                 response = self.chat(user_input)
                 print(f"Bot: {response}\n")
+    def _call(self, prompt: str, stop: Optional[List[str]] = None, **kwargs) -> str:
+        """Generate response from Gemma 3"""
+        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+        
+        outputs = self.model.generate(
+            **inputs,
+            max_new_tokens=512,
+            temperature=0.7,
+            top_p=0.9,
+            do_sample=True,
+            pad_token_id=self.tokenizer.eos_token_id
+        )
+        
+        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # Remove the prompt from response
+        response = response[len(prompt):].strip()
+        
+        return response
 
 if __name__ == "__main__":
-    PATH_TO_MODEL = "./model/gemma-3-4b-it" 
-    chatbot = GemmaChat(model_path=PATH_TO_MODEL) 
-    chatbot.run()
+    model_path = os.getenv("MODEL_PATH")
+    full_path = str(Path(model_path).resolve())
+    chatbot = GemmaChat(model_path=full_path)
+    output = chatbot._call("Hello, what is the species of animal Royya ?")
+    print(output)
+    # chatbot.run()
