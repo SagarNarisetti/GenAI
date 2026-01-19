@@ -209,3 +209,4 @@ __marimo__/
 # --- IGNORE BELOW THIS LINE ---
 # ignore model files
 model/*
+data/*
