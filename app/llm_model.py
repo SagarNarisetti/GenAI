@@ -5,8 +5,15 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from langchain_huggingface import HuggingFacePipeline
 from typing import List, Optional, Any
 from pathlib import Path
+from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
+from langchain_classic.chains import LLMChain
+import logging
 from dotenv import load_dotenv
+
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class GemmaChat:
     """Chatbot using local Gemma 3 model with LangChain."""
@@ -108,11 +115,238 @@ class GemmaChat:
         response = response[len(prompt):].strip()
         
         return response
+    
+
+
+class GemmaLLM:    
+    def __init__(self, model_path: str, temperature: float = 0.7, max_new_tokens: int = 512, device: str = "auto"):
+        
+        self.model_path = model_path
+        self.temperature = temperature
+        self.max_new_tokens = max_new_tokens
+        
+        # Determine device
+        if device == "auto":
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = device
+        
+        logger.info(f"🔄 Loading model from {model_path}")
+        logger.info(f"📱 Using device: {self.device}")
+        
+        try:
+            # Load tokenizer
+            # The tokenizer converts text to numbers (tokens) the model understands
+            self.tokenizer = AutoTokenizer.from_pretrained(
+                model_path,
+                local_files_only=True,  # Only use local files, no downloading
+                trust_remote_code=True
+            )
+            
+            # Set padding token if not set
+            if self.tokenizer.pad_token is None:
+                self.tokenizer.pad_token = self.tokenizer.eos_token
+            
+            logger.info("✅ Tokenizer loaded")
+            
+            # Load model
+            # This is the actual neural network with billions of parameters
+            self.model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                local_files_only=True,
+                torch_dtype=torch.float16 if self.device == "cuda" else torch.float32,
+                device_map=self.device if self.device == "cuda" else None,
+                trust_remote_code=True,
+                low_cpu_mem_usage=True
+            )
+            
+            # Move to device if CPU
+            if self.device == "cpu":
+                self.model = self.model.to(self.device)
+            
+            logger.info("✅ Model loaded into memory")
+            
+            # Create text generation pipeline
+            # This wraps the model with convenient methods for generation
+            self.pipe = pipeline(
+                "text-generation",
+                model=self.model,
+                tokenizer=self.tokenizer,
+                max_new_tokens=max_new_tokens,
+                temperature=temperature,
+                do_sample=True,  # Use sampling for more natural responses
+                top_p=0.95,  # Nucleus sampling
+                repetition_penalty=1.1  # Discourage repetition
+            )
+            logger.info("✅ Pipeline created")
+            
+            # Wrap in Langchain for easy integration
+            self.llm = HuggingFacePipeline(pipeline=self.pipe)
+            logger.info("✅ LLM ready for use")
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to initialize LLM: {e}")
+            raise
+    
+    def generate_response(self, query: str) -> str:
+
+        """ Generate a response from the model based on the input query."""
+
+        try:
+            # Format the prompt (Gemma models have specific formatting requirements)
+            formatted_prompt = self._format_prompt(query)
+            
+            # Generate response
+            response = self.llm.invoke(formatted_prompt)
+            
+            # Extract just the generated text (remove the prompt)
+            clean_response = self._clean_response(response, formatted_prompt)
+            
+            return clean_response
+            
+        except Exception as e:
+            logger.error(f"❌ Error generating response: {e}")
+            return f"Error: {str(e)}"
+    
+    def generate_rag_response(self, query: str, context: str) -> str:
+        """
+        Generate a response using RAG (Retrieval-Augmented Generation).
+        
+        """
+        try:
+            # Create a prompt template that combines context and question
+            rag_prompt = PromptTemplate(
+                input_variables=["context", "question"],
+                template="""Use the following context to answer the question. If you cannot answer based on the context, say so.
+
+                        Context: {context}
+
+                        Question: {question}
+
+                        Answer:"""
+                        )
+            
+            # Create a chain that combines the prompt and LLM
+            chain = LLMChain(llm=self.llm, prompt=rag_prompt)
+            
+            # Generate response with context
+            response = chain.run(context=context, question=query)
+            
+            # Clean the response
+            clean_response = self._clean_response(response, "")
+            
+            return clean_response
+            
+        except Exception as e:
+            logger.error(f"❌ Error generating RAG response: {e}")
+            return f"Error: {str(e)}"
+    
+    def _format_prompt(self, query: str) -> str:
+        """
+        Format prompt according to Gemma's chat template.
+        """
+        # Gemma-2 chat format
+        return f"<start_of_turn>user\n{query}<end_of_turn>\n<start_of_turn>model\n"
+    
+    def _clean_response(self, response: str, prompt: str) -> str:
+        """
+        Remove prompt echo and special tokens from response.
+        
+        Reality: Models often echo the input prompt or include special tokens
+        in their output. This cleans up the response to just the actual answer.
+        """
+        # Remove the prompt if it's echoed
+        if prompt and response.startswith(prompt):
+            response = response[len(prompt):]
+        
+        # Remove special tokens
+        response = response.replace("<end_of_turn>", "")
+        response = response.replace("<start_of_turn>", "")
+        response = response.replace("<bos>", "")
+        response = response.replace("<eos>", "")
+        
+        # Strip whitespace
+        response = response.strip()
+        
+        return response
+    
+    def test_connection(self) -> bool:
+        """
+        Test if the model is working correctly.
+        
+        Returns:
+            True if model responds, False otherwise
+        """
+        try:
+            test_response = self.generate_response("Hello, are you working?")
+            return bool(test_response) and "error" not in test_response.lower()
+        except Exception:
+            return False
+    
+    def get_model_info(self) -> dict:
+        """
+        Get information about the loaded model.
+        
+        Returns:
+            Dictionary with model metadata
+        """
+        return {
+            "model_path": self.model_path,
+            "device": self.device,
+            "temperature": self.temperature,
+            "max_new_tokens": self.max_new_tokens,
+            "model_type": self.model.config.model_type if hasattr(self.model, 'config') else "unknown",
+            "vocab_size": self.tokenizer.vocab_size if self.tokenizer else 0
+        }
+
+
+    
 
 if __name__ == "__main__":
-    model_path = os.getenv("MODEL_PATH")
-    full_path = str(Path(model_path).resolve())
-    chatbot = GemmaChat(model_path=full_path)
-    output = chatbot._call("Hello, what is the species of animal Royya ?")
-    print(output)
-    # chatbot.run()
+    # model_path = os.getenv("MODEL_PATH")
+    # full_path = str(Path(model_path).resolve())
+    # chatbot = GemmaChat(model_path=full_path)
+    # output = chatbot._call("Hello, what is the species of animal Royya ?")
+    # print(output)
+    # # chatbot.run()
+
+    ########################################################################
+
+    print("🔧 Testing Gemma3 LLM from HuggingFace...")
+    
+    # Set your model path (update this to your actual path)
+    MODEL_PATH = os.getenv("MODEL_PATH", "./model/gemma-3-4b-it")
+    
+    if not os.path.exists(MODEL_PATH):
+        print(f"❌ Model not found at {MODEL_PATH}")
+        print("Please download the model from HuggingFace first!")
+        print("\nTo download:")
+        print("  huggingface-cli download google/gemma-2-2b-it --local-dir ./models/gemma-2-2b-it")
+        exit(1)
+    
+    # Initialize the model
+    print("\n📥 Loading model (this takes 30-60 seconds)...")
+    gemma = GemmaLLM(model_path=MODEL_PATH)
+    
+    # Print model info
+    print("\n📊 Model Information:")
+    for key, value in gemma.get_model_info().items():
+        print(f"  {key}: {value}")
+    
+    # Test basic generation
+    print("\n📝 Basic Generation Test:")
+    response = gemma.generate_response("What is machine learning in one sentence?")
+    print(f"Response: {response}")
+    
+    # Test RAG generation
+    print("\n📚 RAG Generation Test:")
+    sample_context = "Machine learning is a subset of artificial intelligence that enables systems to learn and improve from experience without being explicitly programmed."
+    rag_response = gemma.generate_rag_response(
+        query="What is machine learning?",
+        context=sample_context
+    )
+    print(f"RAG Response: {rag_response}")
+    
+    print("\n✅ All tests completed!")
+
+
