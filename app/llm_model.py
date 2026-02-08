@@ -7,6 +7,8 @@ from typing import List, Optional, Any
 from pathlib import Path
 from langchain_core.prompts import PromptTemplate, ChatPromptTemplate
 from langchain_classic.chains import LLMChain
+from langchain_core.output_parsers import StrOutputParser
+
 import logging
 from dotenv import load_dotenv
 
@@ -124,6 +126,7 @@ class GemmaLLM:
         self.model_path = model_path
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
+        self.history = []
         
         # Determine device
         if device == "auto":
@@ -188,72 +191,29 @@ class GemmaLLM:
             logger.error(f"❌ Failed to initialize LLM: {e}")
             raise
     
-    def generate_response(self, query: str) -> str:
-
-        """ Generate a response from the model based on the input query."""
-
-        try:
-            # Format the prompt (Gemma models have specific formatting requirements)
-            formatted_prompt = self._format_prompt(query)
-            
-            # Generate response
-            response = self.llm.invoke(formatted_prompt)
-            
-            # Extract just the generated text (remove the prompt)
-            clean_response = self._clean_response(response, formatted_prompt)
-            
-            return clean_response
-            
-        except Exception as e:
-            logger.error(f"❌ Error generating response: {e}")
-            return f"Error: {str(e)}"
-    
-    def generate_rag_response(self, query: str, context: str) -> str:
-        """
-        Generate a response using RAG (Retrieval-Augmented Generation).
-        
-        """
-        try:
-            # Create a prompt template that combines context and question
-            rag_prompt = PromptTemplate(
-                input_variables=["context", "question"],
-                template="""Use the following context to answer the question. If you cannot answer based on the context, say so.
-
-                        Context: {context}
-
-                        Question: {question}
-
-                        Answer:"""
-                        )
-            
-            # Create a chain that combines the prompt and LLM
-            chain = LLMChain(llm=self.llm, prompt=rag_prompt)
-            
-            # Generate response with context
-            response = chain.run(context=context, question=query)
-            
-            # Clean the response
-            clean_response = self._clean_response(response, "")
-            
-            return clean_response
-            
-        except Exception as e:
-            logger.error(f"❌ Error generating RAG response: {e}")
-            return f"Error: {str(e)}"
-    
     def _format_prompt(self, query: str) -> str:
         """
         Format prompt according to Gemma's chat template.
         """
+        context = ""
+        for human_msg, bot_msg in self.history[-3:]:
+            context = context + f"<start_of_turn>user\n{human_msg}<end_of_turn>\n"
+            context = context + f"<start_of_turn>model\n{bot_msg}<end_of_turn>\n"
+            
+        # Final Prompt Construction
+        prompt = f"{context}<start_of_turn>user\n{query}<end_of_turn>\n<start_of_turn>model\n"
+        
+        response = self.llm.invoke(prompt)
+        
+        clean_response = response.strip()
+
+        self.history.append((query, clean_response))
         # Gemma-2 chat format
-        return f"<start_of_turn>user\n{query}<end_of_turn>\n<start_of_turn>model\n"
+        return f"{context}<start_of_turn>user\n{query}<end_of_turn>\n<start_of_turn>model\n"
     
     def _clean_response(self, response: str, prompt: str) -> str:
         """
         Remove prompt echo and special tokens from response.
-        
-        Reality: Models often echo the input prompt or include special tokens
-        in their output. This cleans up the response to just the actual answer.
         """
         # Remove the prompt if it's echoed
         if prompt and response.startswith(prompt):
@@ -269,7 +229,62 @@ class GemmaLLM:
         response = response.strip()
         
         return response
+
+    def generate_response(self, query: str) -> str:
+
+        """ Generate a response from the model based on the input query."""
+
+        try:
+            # Format the prompt (Gemma models have specific formatting requirements)
+            formatted_prompt = self._format_prompt(query)
+            
+            # Generate response
+            response = self.llm.invoke(input=formatted_prompt)
+            
+            # Extract just the generated text (remove the prompt)
+            clean_response = self._clean_response(response, formatted_prompt)
+            
+            return clean_response
+            
+        except Exception as e:
+            logger.error(f"Error generating response: {e}")
+            return f"Error: {str(e)}"
     
+    def generate_rag_response(self, query: str, context: str) -> str:
+        """
+        Generate a response using RAG (Retrieval-Augmented Generation).
+        
+        """
+        try:
+            # Create a prompt template that combines context and question
+            rag_prompt = PromptTemplate(
+                input_variables=["context", "question"],
+                template="""
+                Use the following context to answer the question. If you cannot answer based on the context, say so.
+                Context: {context}
+                
+                Question: {question}
+
+                Answer:
+                """)
+            
+            # Create a chain that combines the prompt and LLM
+            # chain = LLMChain(llm=self.llm, prompt=rag_prompt)
+            chain = rag_prompt | self.llm | StrOutputParser()
+            
+            # Generate response with context
+            response = chain.invoke({"context": context, "question": query})
+            
+            # Clean the response
+            clean_response = self._clean_response(response, "")
+            
+            return clean_response
+            
+        except Exception as e:
+            logger.error(f"❌ Error generating RAG response: {e}")
+            return f"Error: {str(e)}"
+    
+
     def test_connection(self) -> bool:
         """
         Test if the model is working correctly.
