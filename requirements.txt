@@ -1,41 +1,168 @@
-# git clone https://hf_YOUR_TOKEN_HERE@huggingface.co/google/gemma-3-4b-it
-# huggingface_hub
-# transformers
-# torch 
-# pillow 
-# requests
-# accelerate
-# langgraph
-# langchain
+# # git clone https://hf_YOUR_TOKEN_HERE@huggingface.co/google/gemma-3-4b-it
+# # huggingface_hub
+# # transformers
+# # torch 
+# # pillow 
+# # requests
+# # accelerate
+# # langgraph
+# # langchain
 
-# LangChain Ecosystem - Updated to 0.3+ Modular Architecture
-langchain>=0.3.0
-langchain-community>=0.3.0
-langchain-postgres>=0.0.12  # IMPORTANT: This newer version supports modern langchain-core
-langchain-text-splitters>=0.3.0
+# # LangChain Ecosystem - Updated to 0.3+ Modular Architecture
+# langchain>=0.3.0
+# langchain-community>=0.3.0
+# langchain-postgres>=0.0.12  # IMPORTANT: This newer version supports modern langchain-core
+# langchain-text-splitters>=0.3.0
 
-# LLM & Embeddings
-transformers>=4.36.0
-torch>=2.1.0
-sentence-transformers>=2.2.2
-accelerate>=0.25.0
+# # LLM & Embeddings
+# transformers>=4.36.0
+# torch>=2.1.0
+# sentence-transformers>=2.2.2
+# accelerate>=0.25.0
 
-# Vector Store & Database
-pgvector>=0.2.5
-psycopg[binary,pool]        # Modern driver required by new langchain-postgres
-sqlalchemy>=2.0.29
+# # Vector Store & Database
+# pgvector>=0.2.5
+# psycopg[binary,pool]        # Modern driver required by new langchain-postgres
+# sqlalchemy>=2.0.29
 
-# PDF Processing
-pypdf>=3.17.4
+# # PDF Processing
+# pypdf>=3.17.4
 
-# API & Web
-fastapi>=0.109.0
-uvicorn[standard]>=0.25.0
-python-multipart>=0.0.6
+# # API & Web
+# fastapi>=0.109.0
+# uvicorn[standard]>=0.25.0
+# python-multipart>=0.0.6
 
-# Utilities
-python-dotenv>=1.0.0
-pydantic>=2.5.0
+# # Utilities
+# python-dotenv>=1.0.0
+# pydantic>=2.5.0
 
-torchvision
-torchaudio
+# torchvision
+# torchaudio
+
+################################################
+accelerate               =1.12.0
+aiohappyeyeballs         =2.6.1
+aiohttp                  =3.13.3
+aiosignal                =1.4.0
+annotated-doc            =0.0.4
+annotated-types          =0.7.0
+anyio                    =4.12.1
+async-timeout            =4.0.3
+asyncpg                  =0.31.0
+attrs                    =25.4.0
+backports.zstd           =1.3.0
+Brotli                   =1.2.0
+certifi                  =2026.1.4
+cffi                     =2.0.0
+charset-normalizer       =3.4.4
+click                    =8.3.1
+dataclasses-json         =0.6.7
+exceptiongroup           =1.3.1
+fastapi                  =0.128.0
+filelock                 =3.20.1
+frozenlist               =1.8.0
+fsspec                   =2025.12.0
+gitdb                    =4.0.12
+GitPython               =3.1.46
+greenlet                = 3.3.0
+gritql                   =0.2.0
+h11                      =0.16.0
+h2                       =4.3.0
+hf-xet                   =1.2.0
+hpack                    =4.1.0
+httpcore                 =1.0.9
+httptools                =0.7.1
+httpx                    =0.28.1
+httpx-sse                =0.4.3
+huggingface-hub          =0.36.0
+hyperframe               =6.1.0
+idna                     =3.11
+Jinja2                   =3.1.6
+joblib                   =1.5.3
+jsonpatch                =1.33
+jsonpointer              =3.0.0
+langchain                =1.2.4
+langchain-classic        =1.0.1
+langchain-cli            =0.0.37
+langchain-community      =0.4.1
+langchain-core           =1.2.7
+langchain-huggingface    =1.2.0
+langchain-postgres       =0.0.16
+langchain-text-splitters =1.1.0
+langgraph                =1.0.5
+langgraph-checkpoint     =3.0.1
+langgraph-prebuilt       =1.0.5
+langgraph-sdk            =0.3.1
+langserve                =0.3.3
+langsmith                =0.6.2
+markdown-it-py           =4.0.0
+MarkupSafe               =3.0.3
+marshmallow              =3.26.2
+mdurl                    =0.1.2
+mpmath                   =1.3.0
+multidict                =6.7.0
+mypy_extensions          =1.1.0
+networkx                 =3.6.1
+numpy                    =2.4.1
+orjson                   =3.11.5
+ormsgpack                =1.12.1
+packaging                =25.0
+pgvector                 =0.3.6
+pillow                   =12.0.0
+pip                      =25.3
+propcache                =0.4.1
+psutil                   =7.2.0
+psycopg                  =3.3.2
+psycopg-binary           =3.3.2
+psycopg-pool             =3.3.0
+pycparser                =2.22
+pydantic                 =2.12.5
+pydantic_core            =2.41.5
+pydantic-settings        =2.12.0
+Pygments                 =2.19.2
+pypdf                    =6.5.0
+PySocks                  =1.7.1
+python-dotenv            =1.2.1
+python-multipart         =0.0.21
+PyYAML                   =6.0.3
+regex                    =2025.11.3
+requests                 =2.32.5
+requests-toolbelt        =1.0.0
+rich                     =14.2.0
+safetensors              =0.7.0
+scikit-learn             =1.8.0
+scipy                    =1.17.0
+sentence-transformers    =5.2.0
+setuptools               =80.9.0
+shellingham              =1.5.4
+smmap                    =5.0.2
+sniffio                  =1.3.1
+SQLAlchemy               =2.0.45
+sse-starlette            =1.8.2
+starlette                =0.50.0
+sympy                    =1.14.0
+tenacity                 =9.1.2
+threadpoolctl            =3.6.0
+tokenizers               =0.22.1
+tomlkit                  =0.13.3
+torch                    =2.9.1
+torchaudio               =2.9.1
+torchvision              =0.24.1
+tqdm                     =4.67.1
+transformers             =4.57.3
+typer                    =0.21.1
+typer-slim               =0.21.0
+typing_extensions        =4.15.0
+typing-inspect           =0.9.0
+typing-inspection        =0.4.2
+urllib3                  =2.6.3
+uuid_utils               =0.12.0
+uvicorn                  =0.40.0
+uvloop                   =0.22.1
+watchfiles               =1.1.1
+websockets               =16.0
+wheel                    =0.45.1
+xxhash                   =3.6.0
+yarl                     =1.22.0
+zstandard                =0.25.0
