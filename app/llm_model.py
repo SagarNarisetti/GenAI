@@ -133,7 +133,7 @@ class GemmaLLM:
         """ Generate a response from the model based on the input query."""
 
         try:
-            # Format the prompt (Gemma models have specific formatting requirements)
+            # Format the prompt (Gemma model have specific formatting requirements)
             formatted_prompt = self._format_prompt(query)
             
             # Generate response
@@ -208,6 +208,8 @@ class GemmaLLM:
             "device": self.device,
             "temperature": self.temperature,
             "max_new_tokens": self.max_new_tokens,
+            "max_history": self.max_history,
+            "current_history_length": len(self.history),
             "model_type": self.model.config.model_type if hasattr(self.model, 'config') else "unknown",
             "vocab_size": self.tokenizer.vocab_size if self.tokenizer else 0
         }
@@ -222,7 +224,7 @@ if __name__ == "__main__":
         print(f"❌ Model not found at {MODEL_PATH}")
         print("Please download the model from HuggingFace first!")
         print("\nTo download:")
-        print("  huggingface-cli download google/gemma-2-2b-it --local-dir ./models/gemma-2-2b-it")
+        print("  huggingface-cli download google/gemma-2-2b-it --local-dir ./model/gemma-2-2b-it")
         exit(1)
     
     # Initialize the model
