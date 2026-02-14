@@ -21,7 +21,23 @@ RUN pip install --no-cache-dir -r requirements_new.txt
 COPY ./app/main.py .
 COPY ./app/llm_model.py .
 COPY ./app/embedding_service.py .
-COPY ./model/gemma-3-4b-it /app/model/gemma-3-4b-it
+
+COPY ./model/gemma-3-4b-it/.cache /model/gemma-3-4b-it/.cache/
+COPY ./model/gemma-3-4b-it/.gitattributes /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/added_tokens.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/chat_template.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/config.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/generation_config.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/model-00001-of-00002.safetensors /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/model-00002-of-00002.safetensors /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/model.safetensors.index.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/preprocessor_config.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/processor_config.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/README.md /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/special_tokens_map.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/tokenizer_config.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/tokenizer.json /model/gemma-3-4b-it/
+COPY ./model/gemma-3-4b-it/tokenizer.model /model/gemma-3-4b-it/
 
 # Create directory for HuggingFace cache
 RUN mkdir -p /app/model
