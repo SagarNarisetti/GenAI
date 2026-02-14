@@ -16,44 +16,36 @@ services:
     networks:
       - rag_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rag_user -d rag_database"]
+      test: ["CMD-SHELL", "pg_isready -U sagar -d rag_database"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # Streamlit application container
   streamlit_app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    build: .
+      # context: .
+      # dockerfile: Dockerfile
     container_name: streamlit_app
+    env_file:
+      - .env
     ports:
       - "8501:8501"
     volumes:
-      - ./app:/app                              # Mount application code
-      - ./models:/app/models                    # Mount local models directory
-      - huggingface_cache:/root/.cache/huggingface  # Cache for HuggingFace models
+      - ./app:/app # Mount application code
     depends_on:
       pgvector:
         condition: service_healthy
     environment:
       - DATABASE_URL=postgresql://sagar:narisetti@pgvector:5432/rag_database
-      - TRANSFORMERS_CACHE=/app/models         # HuggingFace cache location
-      - HF_HOME=/app/models                    # HuggingFace home directory
-      - CUDA_VISIBLE_DEVICES=0                 # Use GPU 0 (remove if CPU only)
+      - HF_HOME=/app/model                    # HuggingFace home directory
+      - TRANSFORMERS_CACHE=/app/model       # HuggingFace cache location
+      - HF_HUB_OFFLINE=1
     networks:
       - rag_network
-    # Uncomment if using GPU
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
 
 volumes:
-  pgvector_data:
+  pgvector_data: # Persistent storage for PostgreSQL data
   huggingface_cache:
 
 networks:
