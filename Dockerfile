@@ -27,8 +27,8 @@ COPY ./model/gemma-3-4b-it /app/model/gemma-3-4b-it
 RUN mkdir -p /app/model
 
 # Set HuggingFace cache directory
-ENV TRANSFORMERS_CACHE=/app/model_cache
-ENV HF_HOME=/app/model_cache
+ENV HF_HOME=/app/model
+ENV TRANSFORMERS_CACHE=/app/model
 
 # Expose Streamlit port
 EXPOSE 8501
@@ -38,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8501/_stcore/health || exit 1
 
 # Run Streamlit
-CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"]
+CMD ["streamlit", "run", "main.py", "--server.port=8501", "--server.address=0.0.0.0"] 
