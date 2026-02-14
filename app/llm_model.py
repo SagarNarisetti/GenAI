@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class GemmaLLM:    
     def __init__(self, model_path: str, temperature: float = 0.7, max_new_tokens: int = 512, device: str = "auto"):
         
-        self.model_path = model_path
+        self.model_path = os.path.abspath(model_path)
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
         self.history = []
