@@ -12,6 +12,7 @@ Features:
 
 import streamlit as st
 from llm_model import GemmaLLM
+from huggingface_hub.utils import HFValidationError
 from embedding_service import EmbeddingService
 import os
 from pathlib import Path
@@ -21,10 +22,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Database configuration
-DATABASE_URL = os.getenv(
-    "DATABASE_URL","postgresql://sagar:narisetti@pgvector:5432/rag_database"
-)
-model_path = os.getenv("MODEL_PATH", "./model/gemma-3-4b-it")
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    # This shows a red box in the Streamlit UI if the variable is missing
+    st.error("🚨 DATABASE_URL not found! check your .env file or Docker Compose settings.")
+    st.stop()
+
+MODEL_PATH = os.getenv("MODEL_PATH", "/app/model/gemma-3-4b-it")
+if not os.path.exists(MODEL_PATH):
+    st.error(f"🚨 Model not found at {MODEL_PATH}! Please check your .env file or Docker setup.")
+    st.warning("To download the model, run:\n\nhuggingface-cli download google/gemma-3-4b-it --local-dir ./model/gemma-3-4b-it")
+    st.stop()
 # Page configuration
 st.set_page_config(
     page_title="RAG Chat Application",
@@ -45,7 +53,17 @@ def initialize_session_state():
     
     if "llm" not in st.session_state:
         with st.spinner("🔄 Initializing Gemma3 model..."):
-            st.session_state.llm = GemmaLLM(model_path=model_path)
+            try:
+                st.session_state.llm = GemmaLLM(model_path=MODEL_PATH)
+                print(f"\n✅ Gemma3 model initialized successfully! Path: {MODEL_PATH}")
+            except (HFValidationError, OSError) as e:
+                st.error(f"❌ Failed to load model: {e}")
+                st.warning(f"Check if the directory exists and contains config files: {MODEL_PATH}")
+                # Optional: Stop execution if the model is critical
+                st.stop()
+            except Exception as e:
+                st.error(f"An unexpected error occurred: {e}")
+                st.stop()
     
     if "embedding_service" not in st.session_state:
         with st.spinner("🔄 Connecting to vector database..."):
