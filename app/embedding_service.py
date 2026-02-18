@@ -1,7 +1,7 @@
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
-# from langchain_community.vectorstores import PGVector
+# from langchain_community.vectorstores.pgvector import PGVector
 from langchain_postgres import PGVector
 
 from typing import List, Optional
@@ -58,11 +58,11 @@ class EmbeddingService:
         and sets up the table schema for storing embeddings.
         """
         try:
-            # This creates the vector store or connects to existing one
             self.vector_store = PGVector(
+                embeddings=self.embeddings,         
                 collection_name=self.collection_name,
-                connection_string=self.database_url,
-                embedding_function=self.embeddings,
+                connection=self.database_url,              
+                use_jsonb=True,
             )
             logger.info("✅ Connected to PGVector database")
         except Exception as e:
@@ -123,21 +123,6 @@ class EmbeddingService:
     def retrieve_context(self, query: str, k: int = 3) -> str:
         """
         Retrieve relevant text chunks for a given query.
-        
-        Args:
-            query: User's question
-            k: Number of top results to return
-            
-        Returns:
-            Combined text from the most relevant chunks
-            
-        Reality: This is where the semantic search happens:
-        1. Convert query to vector using same embedding model
-        2. Find the k closest vectors in the database (cosine similarity)
-        3. Return the original text of those chunks
-        
-        Example: If user asks "What is the refund policy?", this finds
-        chunks about refunds, even if they don't use that exact word.
         """
         try:
             logger.info(f"🔍 Searching for: {query}")
@@ -196,19 +181,44 @@ class EmbeddingService:
 
 # Example usage and testing
 if __name__ == "__main__":
-    print("🔧 Testing Embedding Service...")
-    
-    # Database connection string
-    DATABASE_URL = "postgresql://rag_user:rag_password@localhost:5432/rag_database"
-    
-    # Initialize service
-    service = EmbeddingService(database_url=DATABASE_URL)
-    
-    # Test PDF processing (replace with your actual PDF path)
-    # pdf_path = "sample_document.pdf"
-    # num_chunks = service.process_pdf(pdf_path)
-    # print(f"✅ Processed {num_chunks} chunks")
-    
-    # Test retrieval
-    # context = service.retrieve_context("What is the main topic of the document?")
-    # print(f"📚 Retrieved context:\n{context[:500]}...")
+    # --- CONFIGURATION ---
+    # Replace with your actual DB credentials
+    DB_URL = "postgresql+psycopg://sagar:narisetti@localhost:5432/rag_database"
+    COLLECTION = "test_collection"
+    TEST_PDF = "./data/DocTailoredRealitiesBrandonSanderson.pdf" # test PDF file path
+    print("\n🚀 --- STARTING INTEGRATION TEST --- 🚀")
+
+    try:
+        # 1. Initialize Service
+        service = EmbeddingService(database_url=DB_URL, collection_name=COLLECTION)
+
+        # 2. Test PDF Processing (The "Write" Test)
+        if os.path.exists(TEST_PDF):
+            num_chunks = service.process_pdf(TEST_PDF)
+            print(f"✅ Success: Processed {num_chunks} chunks from PDF.")
+        else:
+            print(f"⚠️ Skip: '{TEST_PDF}' not found. Test retrieval with existing data.")
+
+        # 3. Test Semantic Retrieval (The "Read" Test)
+        test_query = "What is the main topic of this document?"
+        print(f"\n🔍 Testing Retrieval for: '{test_query}'")
+        
+        results = service.retrieve_with_scores(test_query, k=2)
+
+        if not results:
+            print("❌ Failure: No results retrieved. Is the database empty?")
+        else:
+            print(f"✅ Success: Retrieved {len(results)} results.")
+            
+            # 4. Inspect the first result for quality
+            doc, score = results[0]
+            print(f"\nTop Result Score: {score:.4f}")
+            print(f"Top Result Preview: {doc.page_content[:150]}...")
+            if score < 1.0:
+                print("\n⭐ TEST PASSED: System is returning relevant matches.")
+            else:
+                print("\n⚠️ TEST UNCERTAIN: High distance score. Check embedding quality.")
+
+    except Exception as e:
+        print(f"\n❌ TEST FAILED: {str(e)}")
+        
