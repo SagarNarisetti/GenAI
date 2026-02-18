@@ -158,12 +158,20 @@ class GemmaLLM:
             rag_prompt = PromptTemplate(
                 input_variables=["context", "question"],
                 template="""
-                Use the following context to answer the question. If you cannot answer based on the context, say so.
-                Context: {context}
+                You are a helpful and accurate assistant. Use only the provided context to answer the user's question. 
 
-                Question: {question}
+                ### Constraints:
+                1. If the answer is not contained within the context below, state clearly that you do not have enough information.
+                2. Do not use outside knowledge or make up facts.
+                3. Keep your response concise and professional.
 
-                Answer:
+                ### Context:
+                {context}
+
+                ### Question:
+                {question}
+
+                ### Answer:
                 """)
             
             # Create a chain that combines the prompt and LLM
