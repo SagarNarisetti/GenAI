@@ -57,7 +57,7 @@ langchain-cli==0.0.37
 langchain-community==0.4.1
 langchain-core==1.2.7
 langchain-huggingface==1.2.0
-langchain-postgres==0.0.16
+langchain-postgres==0.0.17
 langchain-text-splitters==1.1.0
 langdetect==1.0.9
 langgraph==1.0.5
@@ -94,6 +94,7 @@ psutil==7.2.0
 psycopg==3.3.2
 psycopg-binary==3.3.2
 psycopg-pool==3.3.0
+psycopg2-binary==2.9.11
 pyarrow==23.0.0
 pycparser==2.22
 pydantic==2.12.5
