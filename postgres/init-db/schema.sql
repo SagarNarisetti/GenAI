@@ -1,22 +1,24 @@
--- Enable pgvector extension
+-- 1. CLEAN UP: Remove old broken schemas to avoid the 'custom_id' error
+DROP TABLE IF EXISTS langchain_pg_embedding;
+DROP TABLE IF EXISTS langchain_pg_collection;
+
+-- 2. ENABLE EXTENSION: Required for vector operations
 CREATE EXTENSION IF NOT EXISTS vector;
 
--- IMPORTANT: This schema is minimal because LangChain PGVector will auto-create
--- its own tables (langchain_pg_collection and langchain_pg_embedding)
--- 
--- If you need a custom items table, use 384 dimensions (not 1536)
--- to match the all-MiniLM-L6-v2 embedding model
-
--- Optional: Create sample table with CORRECT dimensions
+-- 3. OPTIONAL CUSTOM TABLE: For your own manual testing/storage
+-- Dimension 384 matches 'all-MiniLM-L6-v2'
 CREATE TABLE IF NOT EXISTS items (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
+    name TEXT NOT NULL,
     item_data JSONB,
     embedding vector(384),  
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index for faster similarity search
+-- 4. OPTIMISE: Use HNSW for faster similarity searches as you add data
+-- This index is more modern and efficient than ivfflat
 CREATE INDEX IF NOT EXISTS items_embedding_idx ON items 
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
+USING hnsw (embedding vector_cosine_ops);
+
+-- 5. VERIFY: Ensure the extension is active
+SELECT * FROM pg_extension WHERE extname = 'vector';
