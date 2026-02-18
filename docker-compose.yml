@@ -40,7 +40,7 @@ services:
       - DATABASE_URL=postgresql://sagar:narisetti@pgvector:5432/rag_database
       - HF_HOME=/model                    # HuggingFace home directory
       - TRANSFORMERS_CACHE=/model       # HuggingFace cache location
-      - HF_HUB_OFFLINE=1
+      # - HF_HUB_OFFLINE=1
       - PYTHONUNBUFFERED=1
     networks:
       - rag_network
