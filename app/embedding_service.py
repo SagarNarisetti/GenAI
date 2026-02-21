@@ -23,7 +23,7 @@ class EmbeddingService:
     - Retrieving relevant context
     """
     
-    def __init__(self, database_url: str, collection_name: str = "document_embeddings"):
+    def __init__(self, database_url: str, collection_name: str = "document_embeddings", embedding_model: Optional[str] = None):
         """
         Initialize the embedding service.
         
@@ -41,8 +41,8 @@ class EmbeddingService:
         # This model converts text into numerical vectors
         logger.info("🔄 Loading embedding model...")
         self.embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2",
-            model_kwargs={'device': 'cpu'}  # Use 'cuda' if you have GPU
+            model_name=embedding_model,
+            model_kwargs={'device': 'cpu'}  # Keeps execution local on your hardware
         )
         logger.info("✅ Embedding model loaded")
         
@@ -184,13 +184,14 @@ if __name__ == "__main__":
     # --- CONFIGURATION ---
     # Replace with your actual DB credentials
     DB_URL = "postgresql+psycopg://sagar:narisetti@localhost:5432/rag_database"
+    embedding_model_path = "/model/all-MiniLM-L6-v2"  # Local embedding model
     COLLECTION = "test_collection"
     TEST_PDF = "./data/DocTailoredRealitiesBrandonSanderson.pdf" # test PDF file path
     print("\n🚀 --- STARTING INTEGRATION TEST --- 🚀")
 
     try:
         # 1. Initialize Service
-        service = EmbeddingService(database_url=DB_URL, collection_name=COLLECTION)
+        service = EmbeddingService(database_url=DB_URL, collection_name=COLLECTION, embedding_model=embedding_model_path)
 
         # 2. Test PDF Processing (The "Write" Test)
         if os.path.exists(TEST_PDF):
