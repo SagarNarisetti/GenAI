@@ -33,6 +33,11 @@ if not os.path.exists(MODEL_PATH):
     st.error(f"🚨 Model not found at {MODEL_PATH}! Please check your .env file or Docker setup.")
     st.warning("To download the model, run:\n\nhuggingface-cli download google/gemma-3-4b-it --local-dir ./model/gemma-3-4b-it")
     st.stop()
+
+EMBEDDING_MODEL=os.getenv("EMBEDDING_MODEL")
+if not EMBEDDING_MODEL:
+    st.error("🚨 EMBEDDING_MODEL not found! check your .env file or Docker Compose settings.")
+    st.stop()
 # Page configuration
 st.set_page_config(
     page_title="RAG Chat Application",
@@ -67,7 +72,7 @@ def initialize_session_state():
     
     if "embedding_service" not in st.session_state:
         with st.spinner("🔄 Connecting to vector database..."):
-            st.session_state.embedding_service = EmbeddingService(database_url=DATABASE_URL)
+            st.session_state.embedding_service = EmbeddingService(database_url=DATABASE_URL, embedding_model=EMBEDDING_MODEL)
     
     if "pdf_processed" not in st.session_state:
         st.session_state.pdf_processed = False
