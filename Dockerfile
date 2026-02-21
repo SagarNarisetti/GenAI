@@ -39,6 +39,8 @@ COPY ./model/gemma-3-4b-it/tokenizer_config.json /model/gemma-3-4b-it/
 COPY ./model/gemma-3-4b-it/tokenizer.json /model/gemma-3-4b-it/
 COPY ./model/gemma-3-4b-it/tokenizer.model /model/gemma-3-4b-it/
 
+COPY ./model/all-MiniLM-L6-v2/ /model/all-MiniLM-L6-v2/
+
 # Create directory for HuggingFace cache
 RUN mkdir -p /app/model
 
