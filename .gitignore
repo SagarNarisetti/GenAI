@@ -210,3 +210,88 @@ __marimo__/
 # ignore model files
 model/*
 data/*
+
+# Terraform State Files (SENSITIVE - Never commit)
+*.tfstate
+*.tfstate.*
+.terraform.tfstate
+.terraform.tfstate.backup
+
+# Terraform Directory (local cache)
+.terraform/
+.terraform.lock.hcl
+
+# Plan Files (temporary)
+tfplan
+*.tfplan
+*.tfplan.*
+
+# Variable Files with Secrets (if you have them)
+terraform.tfvars
+!terraform.tfvars.example
+
+# IDE / Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS Files
+Thumbs.db
+.env
+.env.local
+
+# Crash Log Files
+crash.log
+crash.*.log
+
+# Exclude Override Files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# CLI Configuration Files
+.terraformrc
+terraform.rc
+
+# Backup Files
+*.bak
+*.backup
+
+# Python Cache (for app/ directory)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+
+# Node Modules (if using Node.js)
+node_modules/
+package-lock.json
+
+# Model Files (if large)
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+
+# Data Files (if large)
+data/*.csv
+data/*.parquet
+data/*.zip
+!data/README.md
+
+# Logs
+*.log
+logs/
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
