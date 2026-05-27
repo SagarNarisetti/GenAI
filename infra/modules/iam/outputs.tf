@@ -1,13 +1,3 @@
-output "user_arn" {
-    description = "ARN of IAM User"
-    value = aws_iam_user.mleng_user.arn
-}
-
-output "user_name" {
-    description = "Name of IAM User"
-    value = aws_iam_user.mleng_user.name
-}
-
 # output access key
 output "access_key_id" {
   description = "Access key ID"
@@ -20,6 +10,16 @@ output "secret_access_key" {
   description = "Secret access key"
   value       = aws_iam_access_key.mleng_user.secret
   sensitive   = true
+}
+
+output "user_arn" {
+    description = "ARN of IAM User"
+    value = aws_iam_user.mleng_user.arn
+}
+
+output "user_name" {
+    description = "Name of IAM User"
+    value = aws_iam_user.mleng_user.name
 }
 
 output "role_arn" {
@@ -35,4 +35,9 @@ output "role_name" {
 output "policy_arn" {
   description = "ARN of managed policy"
   value       = aws_iam_policy.mleng_policy.arn
+}
+
+output "policy_name" {
+  description = "Name of IAM policy"
+  value = aws_iam_policy.mleng_policy.name
 }
