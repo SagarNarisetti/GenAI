@@ -3,6 +3,7 @@ resource "aws_iam_policy" "mleng_policy" {
     name = var.iam_policy_name
     path = "/"
     description = "IAM Policy for Role MLEngRole"
+    
     policy = jsonencode({
         Version = "2012-10-17"
         Statement = [{
