@@ -6,14 +6,16 @@ resource "aws_iam_policy" "mleng_policy" {
     
     policy = jsonencode({
         Version = "2012-10-17"
-        Statement = [{
-        Sid    = "AllowAssumeRole"
-        Effect = "Allow"
-        Action = [
-            "sts:AssumeRole"
-            ]
-        Resource = aws_iam_role.mleng_role.arn
-        }]
+        Statement = [
+            {
+                Sid    = "AllowAssumeRole"
+                Effect = "Allow"
+                Action = [
+                    "sts:AssumeRole"
+                    ]
+                Resource = aws_iam_role.mleng_role.arn
+                }
+                ]
     })
 }
 
