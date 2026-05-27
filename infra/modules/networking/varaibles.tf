@@ -27,3 +27,17 @@ variable "public_subnet_cidr" {
     description = "public subnet IP"
     type = string
 }
+
+variables "private_data_subnet_az" {
+    description = "private data subnet AZ"
+    type = string
+}
+ variables "private_app_subnet" {
+    description = "private app subnet AZ"
+    type = string
+ }
+
+ variables "private_ml_subnet_az" {
+    description = "private ml subnet AZ"
+    type = string
+ }
