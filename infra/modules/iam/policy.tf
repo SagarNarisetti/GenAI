@@ -8,14 +8,84 @@ resource "aws_iam_policy" "mleng_policy" {
         Version = "2012-10-17"
         Statement = [
             {
+                Sid    = "VPCManagement"
+                Effect = "Allow"
+                Action = [
+                    "ec2:CreateVpc",
+                    "ec2:DeleteVpc",
+                    "ec2:DescribeVpcs",
+                    "ec2:DescribeSubnets",
+                    "ec2:CreateSubnet",
+                    "ec2:DeleteSubnet",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DescribeRouteTables",
+                    "ec2:CreateRouteTable",
+                    "ec2:DeleteRouteTable",
+                    "ec2:AssociateRouteTable",
+                    "ec2:DisassociateRouteTable",
+                    "ec2:CreateRoute",
+                    "ec2:DeleteRoute"
+                    ]
+                Resource = "*"
+            },
+            {
+                Sid    = "InternetGatewayManagement"
+                Effect = "Allow"
+                Action = [
+                    "ec2:CreateInternetGateway",
+                    "ec2:DeleteInternetGateway",
+                    "ec2:DescribeInternetGateways",
+                    "ec2:AttachInternetGateway",
+                    "ec2:DetachInternetGateway"
+                    ]
+                Resource = "*"
+            },
+            {
+                Sid    = "NATGatewayManagement"
+                Effect = "Allow"
+                Action = [
+                    "ec2:AllocateAddress",
+                    "ec2:ReleaseAddress",
+                    "ec2:DescribeAddresses",
+                    "ec2:CreateNatGateway",
+                    "ec2:DeleteNatGateway",
+                    "ec2:DescribeNatGateways"
+                    ]
+                Resource = "*"
+            },
+            {
+                Sid    = "IAMPassRole"
+                Effect = "Allow"
+                Action = [
+                    "iam:PassRole"
+                ]
+                Resource = aws_iam_role.mleng_role.arn
+            },
+            {
                 Sid    = "AllowAssumeRole"
                 Effect = "Allow"
                 Action = [
                     "sts:AssumeRole"
                     ]
                 Resource = aws_iam_role.mleng_role.arn
-                }
-                ]
+            },
+            {
+                Sid    = "TerraformState"
+                Effect = "Allow"
+                Action = [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject",
+                    "s3:ListBucket"
+                    ]
+                Resource = [
+                    "arn:aws:s3:::terraform-state-*",
+                    "arn:aws:s3:::terraform-state-*/*"
+                    ]
+            }
+
+        ]
     })
 }
 
