@@ -1,21 +1,21 @@
 ### VPC
-resource "aws_vpc" "main" {
+resource "aws_vpc" "main_vpc" {
     cidr_block = var.vpc_cidr
     enable_dns_hostnames = true
     enable_dns_support = true
 
     tags={
-        Name = "MlengProject"
+        Name = "mlengProjectVPC"
         Environment = var.environment
     }
 }
 
 ### Interned gateway
-resource "aws_internet_gateway" "main" {
-    vpc_id = aws_vps.main.id
+resource "aws_internet_gateway" "vpc_internet_gateway" {
+    vpc_id = aws_vpc.main_vpc.id
 
     tags = {
-        Name = "MlengProject-igw"
+        Name = "mlengProject-InternetGateway"
         Environment = var.environment
     }
 }
