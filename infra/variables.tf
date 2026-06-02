@@ -29,6 +29,7 @@ variable "iam_policy_name" {
     default = "MLEngDevPolicy"
 }
 
+## Networking
 variable "vpc_cidr" {
     description = "CIDR Ip address"
     type = string
@@ -41,6 +42,7 @@ variable "public_subnet_cidr" {
     default = "10.0.1.0/16"
 }
 
+# private subnets
 variable "private_data_subnet" {
     description = "private data subnet IP"
     type = string
@@ -58,3 +60,26 @@ variable "private_ml_subnet" {
     type = string
     default = "10.0.4.0/24"
 }
+
+variable "public_subnet_az" {
+    description = "public subnet AZ"
+    type = string
+    default = "eu-west-2a"
+}
+
+variable "private_data_subnet_az" {
+    description = "private data subnet AZ"
+    type = string
+    default = "eu_west_2a"
+}
+ variable "private_app_subnet_az" {
+    description = "private app subnet AZ"
+    type = string
+    default = "eu_west_2b"
+ }
+
+ variable "private_ml_subnet_az" {
+    description = "private ml subnet AZ"
+    type = string
+    default = "eu_west_2c"
+ }
