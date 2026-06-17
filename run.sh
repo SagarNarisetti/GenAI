@@ -1,24 +1,31 @@
 #!/bin/bash
 
+# Exit immediately if a command exits with a non-zero status.
 set -e
 
-echo "🚀 Deploying RAG Application..."
+echo "🚀 Starting Localized RAG-Enabled Document Intelligence deployment..."
 
-# Build and start all services
-docker-compose up -d --build
+# NOTE: If you are using Minikube, uncomment the line below so Docker builds into the Minikube environment.
+# eval $(minikube docker-env)
 
-# Wait for PostgreSQL to be ready
-echo "⏳ Waiting for database..."
-sleep 10
+echo "📦 Building the local Docker image for the RAG app..."
+docker build -t rag-app:latest -f ./app/Dockerfile .
 
-# Enable PGVector extension
-docker-compose exec postgres psql -U narisetti -d vector_db_genai -c "\dx"
+echo "⚙️  Applying Kubernetes manifests..."
 
-# Wait for application
-echo "⏳ Waiting for application..."
-sleep 10
+# Apply namespace first
+kubectl apply -f k8s/namespace.yaml
 
-# Health check
-curl -s http://localhost:8000/health && echo "✅ Application is running!"
+# Apply the rest of the manifests
+kubectl apply -f k8s/ -n rag-app
 
-echo "📍 Access at: http://localhost:8000"
+echo "⏳ Waiting for pods to become ready..."
+kubectl wait --for=condition=ready pod -l app=postgres -n rag-app --timeout=120s
+kubectl wait --for=condition=ready pod -l app=rag-app -n rag-app --timeout=300s
+
+echo "🌐 Setting up Port Forwarding for the frontend..."
+echo "Access your app at: http://localhost:8501"
+echo "Press Ctrl+C to stop port forwarding."
+
+# Forward the Streamlit port to localhost
+kubectl port-forward svc/rag-app-service 8501:8501 -n rag-app
