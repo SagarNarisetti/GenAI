@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pg-init-schema
+  namespace: rag-app
+data:
+  schema.sql: |
+    -- 1. CLEAN UP
+    DROP TABLE IF EXISTS langchain_pg_embedding;
+    DROP TABLE IF EXISTS langchain_pg_collection;
+
+    -- 2. ENABLE EXTENSION
+    CREATE EXTENSION IF NOT EXISTS vector;
+
+    -- 3. CUSTOM TABLE
+    CREATE TABLE IF NOT EXISTS items (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        item_data JSONB,
+        embedding vector(384),  
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+
+    -- 4. OPTIMISE
+    CREATE INDEX IF NOT EXISTS items_embedding_idx ON items 
+    USING hnsw (embedding vector_cosine_ops);
