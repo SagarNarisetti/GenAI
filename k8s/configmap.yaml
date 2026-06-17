@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: rag-app
+data:
+  DATABASE_URL: "postgresql+psycopg://$(DB_USER):$(DB_PASSWORD)@localhost:$(DB_PORT)/$(DB_NAME)"
+  EMBEDDING_MODEL: "../model/all-MiniLM-L6-v2"
+  MODEL_PATH: "../model/gemma-3-4b-it"
+  CHUNK_SIZE: "1000"
+  CHUNK_OVERLAP: "200"  
+  DB_PORT: "5432"
