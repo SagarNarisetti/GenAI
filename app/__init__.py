@@ -11,9 +11,9 @@ A Retrieval-Augmented Generation system using:
 
 Architecture:
 -------------
-User → Streamlit UI → 
+User → Streamlit UI →
   ├─ Upload PDF → Embedding Service → PGVector (384-dim vectors)
-  └─ Ask Question → 
+  └─ Ask Question →
       ├─ Retrieve Context (semantic search in PGVector)
       └─ Generate Response (Gemma LLM with context) → Display
 
