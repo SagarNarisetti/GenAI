@@ -1,0 +1,29 @@
+# ---- Database service ----
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: rag-app
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+---
+# ---- RAG App (Streamlit + LLM) Service ----
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-app-service
+  namespace: rag-app
+spec:
+  selector:
+    app: rag-app
+  ports:
+    - protocol: TCP
+      port: 8501
+      targetPort: 8501
+  type: LoadBalancer
+---
