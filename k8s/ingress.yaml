@@ -8,7 +8,7 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: rag-app-local.com  # Replace with your domain
+    - host: rag-app-local.com  # domain
       http:
         paths:
           - path: /
