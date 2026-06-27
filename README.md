@@ -4,15 +4,21 @@ infra/
 ├── variables.tf
 ├── main.tf
 ├── outputs.tf
+├── backend.tf
 └── modules/
     ├── iam/
     │   ├── variables.tf
-    │   ├── *.tf
+    │   ├── user.tf
+    │   ├── role.tf
+    │   ├── policy.tf
     │   └── outputs.tf
     └── networking/
         ├── variables.tf
-        ├── *.tf
-        └── outputs.tf
+        ├── outputs.tf
+        ├── nat.tf
+        ├── route_table.tf
+        ├── subnets.tf
+        └── vpc.tf
 ### models
 model/
 ├── gemma-3-4b
