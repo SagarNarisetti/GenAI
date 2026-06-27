@@ -1,0 +1,13 @@
+model_details:
+  model_name: "google/gemma-4-12b-it"
+  temperature: 0.7
+  max_tokens: 512
+  region_name: "us-west-1"
+  document_embedding_model: "amazon.titan-embed-text-v2:0"
+  pipeline_type: "text-generation"
+
+prompt:
+  system_message: "You are a helpful and accurate assistant. Use only the provided context to answer the user's question."
+  constraints: "1. If the answer is not contained within the context below, state clearly that you do not have enough information.
+                2. Do not use outside knowledge or make up facts.
+                3. Keep your response concise and professional."
