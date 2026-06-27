@@ -18,12 +18,13 @@ COPY requirements_new.txt .
 RUN pip install --no-cache-dir -r requirements_new.txt
 
 # Copy application files
-COPY app/main.py .
-COPY app/llm_model.py .
-COPY app/embedding_service.py .
+COPY app/main.py /app/
+COPY app/src/__init__.py /app/src/
+COPY app/src/llm_model.py /app/src/
+COPY app/src/embedding_service.py /app/src/
+COPY app/src/helpers.py /app/src/
+COPY app/config/params.yaml /app/config/
 
-COPY model/gemma-3-4b-it/ model/gemma-3-4b-it/
-COPY model/all-MiniLM-L6-v2/ model/all-MiniLM-L6-v2/
 
 # Create directory for HuggingFace cache
 RUN mkdir -p /app/cache
