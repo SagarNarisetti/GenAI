@@ -8,6 +8,27 @@ resource "aws_iam_policy" "mleng_policy" {
         Version = "2012-10-17"
         Statement = [
             {
+                "Sid": "BackendBucketList",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:ListBucket"
+                ],
+                "Resource": "arn:aws:s3:::sagar-mleng-tfstate-backup-bucket"
+                },
+                {
+                "Sid": "BackendStateAccess",
+                "Effect": "Allow",
+                "Action": [
+                    "s3:GetObject",
+                    "s3:PutObject",
+                    "s3:DeleteObject"
+                ],
+                "Resource": [
+                    "arn:aws:s3:::sagar-mleng-tfstate-backup-bucket/env/prod/terraform.tfstate",
+                    "arn:aws:s3:::sagar-mleng-tfstate-backup-bucket/env/prod/terraform.tfstate.tflock"
+                ]
+            },
+            {
                 Sid    = "VPCManagement"
                 Effect = "Allow"
                 Action = [

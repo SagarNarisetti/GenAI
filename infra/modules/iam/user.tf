@@ -3,7 +3,7 @@ resource "aws_iam_user" "mleng_user" {
     name = var.iam_user_name
 
     tags = {
-        Environment = "var.environment"
+        Environment = var.environment
         Purpose = "mleng_cicd"
     }
 }
