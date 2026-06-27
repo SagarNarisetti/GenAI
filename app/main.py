@@ -10,16 +10,44 @@ Features:
 4. Session state management
 """
 
-import streamlit as st
-from llm_model import GemmaLLM
-from huggingface_hub.utils import HFValidationError
-from embedding_service import EmbeddingService
 import os
 from pathlib import Path
 import logging
+import streamlit as st
+from huggingface_hub.utils import HFValidationError
+
+
+from app.src.llm_model import LLMBase
+from app.src.embedding_service import EmbeddingService
+from app.src.helpers import read_yaml
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
+try:
+    # Load configuration from YAML
+    config = read_yaml("./config/params.yaml")
+    model_name = config.get("model_name", "gemma-4-12b-it")
+    temperature = config.get("temperature", 0.7)
+    max_new_tokens = config.get("max_new_tokens", 512)
+    embedding_model = config.get("embedding_model", "")
+    aws_region = config.get("region_name", "us-west-1")
+    pipeline_name = config.get("pipeline_name", "text-generation")
+    SYSTEM_MESSAGE = config.get("system_message", "You are a helpful assistant.")
+    CONSTRAINTS = config.get(
+        "constraints",
+        "1. If the answer is not contained within the context below, state clearly that you do not have enough information.\n"
+        "2. Do not use outside knowledge or make up facts.\n"
+        "3. Keep your response concise and professional.",
+    
+    )
+except FileNotFoundError:
+    logger.error(
+        "config.yaml not found! Please ensure it exists in the root directory."
+                 )
+
 
 # Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -29,26 +57,6 @@ if not DATABASE_URL:
         "DATABASE_URL not found! check your .env file or Docker Compose settings."
     )
     st.stop()
-
-MODEL_PATH = os.getenv("MODEL_PATH", "/app/model/gemma-3-4b-it")
-if not os.path.exists(MODEL_PATH):
-    st.error(
-        f"Model not found at {MODEL_PATH}! Please check your .env file or Docker setup."
-    )
-    st.warning(
-        "To download the model, run:\n\nhuggingface-cli download google/gemma-3-4b-it --local-dir ./model/gemma-3-4b-it"
-    )
-    st.stop()
-
-EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "/app/model/all-MiniLM-L6-v2")
-if not os.path.exists(EMBEDDING_MODEL):
-    st.error(
-        "EMBEDDING_MODEL not found! check your .env file or Docker Compose settings."
-    )
-    st.stop()
-# Page configuration
-st.set_page_config(page_title="RAG Chat Application", page_icon="🤖", layout="wide")
-
 
 def initialize_session_state():
     """
@@ -61,14 +69,20 @@ def initialize_session_state():
         st.session_state.messages = []
 
     if "llm" not in st.session_state:
-        with st.spinner("🔄 Initializing Gemma3 model..."):
+        with st.spinner("🔄 Initializing LLM..."):
             try:
-                st.session_state.llm = GemmaLLM(model_path=MODEL_PATH)
-                print(f"\n Gemma3 model initialized successfully! Path: {MODEL_PATH}")
+                st.session_state.llm = LLMBase(model_id=model_name, 
+                                               region_name=aws_region,  
+                                               temperature=temperature, 
+                                               max_new_tokens=max_new_tokens, 
+                                               system_message=SYSTEM_MESSAGE, 
+                                               constraints=CONSTRAINTS 
+                                               )
+                print(f"\n LLM initialized successfully!: {model_name} \n")
             except (HFValidationError, OSError) as e:
                 st.error(f" Failed to load model: {e}")
                 st.warning(
-                    f"Check if the directory exists and contains config files: {MODEL_PATH}"
+                    f"Check if the model exists and is accessible: {model_name}"
                 )
                 # Optional: Stop execution if the model is critical
                 st.stop()
@@ -79,7 +93,10 @@ def initialize_session_state():
     if "embedding_service" not in st.session_state:
         with st.spinner("🔄 Connecting to vector database..."):
             st.session_state.embedding_service = EmbeddingService(
-                database_url=DATABASE_URL, embedding_model=EMBEDDING_MODEL
+                database_url=DATABASE_URL,
+                embedding_model=EMBEDDING_MODEL,
+                dimensions=256,
+                region_name=aws_region
             )
 
     if "pdf_processed" not in st.session_state:
