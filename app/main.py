@@ -17,9 +17,9 @@ import streamlit as st
 from huggingface_hub.utils import HFValidationError
 
 
-from app.src.llm_model import LLMBase
-from app.src.embedding_service import EmbeddingService
-from app.src.helpers import read_yaml
+from src.llm_model import LLMBase
+from src.embedding_service import EmbeddingService
+from src.helpers import read_yaml
 
 
 logging.basicConfig(level=logging.INFO)
@@ -28,21 +28,15 @@ logger = logging.getLogger(__name__)
 
 try:
     # Load configuration from YAML
-    config = read_yaml("./config/params.yaml")
-    model_name = config.get("model_name", "gemma-4-12b-it")
-    temperature = config.get("temperature", 0.7)
-    max_new_tokens = config.get("max_new_tokens", 512)
-    embedding_model = config.get("embedding_model", "")
-    aws_region = config.get("region_name", "us-west-1")
-    pipeline_name = config.get("pipeline_name", "text-generation")
-    SYSTEM_MESSAGE = config.get("system_message", "You are a helpful assistant.")
-    CONSTRAINTS = config.get(
-        "constraints",
-        "1. If the answer is not contained within the context below, state clearly that you do not have enough information.\n"
-        "2. Do not use outside knowledge or make up facts.\n"
-        "3. Keep your response concise and professional.",
-    
-    )
+    config = read_yaml("app/config/params.yaml")
+    model_id = config.get("model_details", {}).get("LLM_model_id")
+    temperature = config.get("model_details", {}).get("temperature")
+    max_new_tokens = config.get("model_details", {}).get("max_new_tokens")
+    embedding_model_id = config.get("model_details", {}).get("embedding_model_id")
+    aws_region = config.get("model_details", {}).get("region_name")
+    pipeline_name = config.get("model_details", {}).get("pipeline_name")
+    SYSTEM_MESSAGE = config.get("prompt", {}).get("system_message")
+    CONSTRAINTS = config.get("prompt", {}).get("constraints")
 except FileNotFoundError:
     logger.error(
         "config.yaml not found! Please ensure it exists in the root directory."
@@ -69,20 +63,20 @@ def initialize_session_state():
         st.session_state.messages = []
 
     if "llm" not in st.session_state:
-        with st.spinner("🔄 Initializing LLM..."):
+        with st.spinner("Initializing LLM..."):
             try:
-                st.session_state.llm = LLMBase(model_id=model_name, 
+                st.session_state.llm = LLMBase(model_id=model_id, 
                                                region_name=aws_region,  
                                                temperature=temperature, 
                                                max_new_tokens=max_new_tokens, 
                                                system_message=SYSTEM_MESSAGE, 
                                                constraints=CONSTRAINTS 
                                                )
-                print(f"\n LLM initialized successfully!: {model_name} \n")
+                print(f"\n LLM initialized successfully!: {model_id} \n")
             except (HFValidationError, OSError) as e:
                 st.error(f" Failed to load model: {e}")
                 st.warning(
-                    f"Check if the model exists and is accessible: {model_name}"
+                    f"Check if the model exists and is accessible: {model_id}"
                 )
                 # Optional: Stop execution if the model is critical
                 st.stop()
@@ -91,10 +85,10 @@ def initialize_session_state():
                 st.stop()
 
     if "embedding_service" not in st.session_state:
-        with st.spinner("🔄 Connecting to vector database..."):
+        with st.spinner("Connecting to vector database..."):
             st.session_state.embedding_service = EmbeddingService(
                 database_url=DATABASE_URL,
-                embedding_model=EMBEDDING_MODEL,
+                embedding_model=embedding_model_id,
                 dimensions=256,
                 region_name=aws_region
             )
@@ -125,7 +119,7 @@ def handle_pdf_upload():
     3. Stores in PGVector
     4. Updates UI to show success
     """
-    st.sidebar.header("📄 Upload PDF")
+    st.sidebar.header("Upload PDF")
     uploaded_file = st.sidebar.file_uploader("Choose a PDF file", type="pdf")
 
     if uploaded_file is not None:
@@ -146,13 +140,13 @@ def handle_pdf_upload():
                     )
 
                     st.session_state.pdf_processed = True
-                    st.sidebar.success(f"✅ Processed {num_chunks} chunks!")
+                    st.sidebar.success(f"Processed {num_chunks} chunks!")
 
                     # Clean up
                     os.remove(pdf_path)
 
                 except Exception as e:
-                    st.sidebar.error(f"❌ Error: {str(e)}")
+                    st.sidebar.error(f"Error: {str(e)}")
                     logger.error(f"PDF processing error: {e}")
 
 
@@ -213,7 +207,7 @@ def handle_user_input(prompt: str):
                 )
 
             except Exception as e:
-                error_msg = f"❌ Error: {str(e)}"
+                error_msg = f"Error: {str(e)}"
                 st.error(error_msg)
                 logger.error(f"Response generation error: {e}")
 
