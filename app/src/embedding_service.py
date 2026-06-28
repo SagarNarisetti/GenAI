@@ -71,16 +71,16 @@ class EmbeddingService:
 
         # Initialize AWS client container for embeddings
         try:
-            logger.info("🔄 Initializing Bedrock Titan Wrapper...")
+            logger.info("Initializing Bedrock Titan Wrapper...")
             # Use our custom class that mirrors LangChain's embedding contract
             self.embeddings = BedrockTitanEmbeddings(
                 region_name=self.region_name, 
                 dimensions=self.dimensions
             )
-            logger.info(f"✅ Embedding model configured for {self.dimensions} dimensions")
+            logger.info(f"Embedding model configured for {self.dimensions} dimensions")
 
         except Exception as e:
-            logger.error(f"❌ Failed to initialize AWS Bedrock interface: {e}")
+            logger.error(f"Failed to initialize AWS Bedrock interface: {e}")
             raise
 
         # Initialize vector store connection
@@ -98,9 +98,9 @@ class EmbeddingService:
                 connection=self.database_url,
                 use_jsonb=True,
             )
-            logger.info("✅ Connected to PGVector database")
+            logger.info("Connected to PGVector database")
         except Exception as e:
-            logger.error(f"❌ Failed to initialize vector store: {e}")
+            logger.error(f" Failed to initialize vector store: {e}")
             raise
 
     def process_pdf(
@@ -110,12 +110,12 @@ class EmbeddingService:
         Process a PDF file and store embeddings in the database.
         """
         try:
-            logger.info(f"📄 Processing PDF: {pdf_path}")
+            logger.info(f"Processing PDF: {pdf_path}")
 
             # STEP 1: Load PDF
             loader = PyPDFLoader(pdf_path)
             documents = loader.load()
-            logger.info(f"📖 Loaded {len(documents)} pages")
+            logger.info(f"Loaded {len(documents)} pages")
 
             # STEP 2: Split into chunks
             text_splitter = RecursiveCharacterTextSplitter(
@@ -125,17 +125,17 @@ class EmbeddingService:
                 separators=["\n\n", "\n", " ", ""]
             )
             chunks = text_splitter.split_documents(documents)
-            logger.info(f"✂️ Split into {len(chunks)} chunks")
+            logger.info(f"Split into {len(chunks)} chunks")
 
             # STEP 3: Create embeddings and store
             # PGVector automatically triggers self.embeddings.embed_documents internally
             self.vector_store.add_documents(chunks)
-            logger.info(f"✅ Stored {len(chunks)} embeddings in database")
+            logger.info(f"Stored {len(chunks)} embeddings in database")
 
             return len(chunks)
 
         except Exception as e:
-            logger.error(f"❌ Error processing PDF: {e}")
+            logger.error(f"Error processing PDF: {e}")
             raise
 
     def retrieve_context(self, query: str, k: int = 3) -> str:
@@ -146,10 +146,10 @@ class EmbeddingService:
             logger.info(f"🔍 Searching for: {query}")
             results = self.vector_store.similarity_search(query, k=k)
             context = "\n\n".join([doc.page_content for doc in results])
-            logger.info(f"✅ Retrieved {len(results)} relevant chunks")
+            logger.info(f"Retrieved {len(results)} relevant chunks")
             return context
         except Exception as e:
-            logger.error(f"❌ Error retrieving context: {e}")
+            logger.error(f"Error retrieving context: {e}")
             return ""
 
     def retrieve_with_scores(self, query: str, k: int = 3) -> List[tuple]:
@@ -158,10 +158,10 @@ class EmbeddingService:
         """
         try:
             results = self.vector_store.similarity_search_with_score(query, k=k)
-            logger.info(f"✅ Retrieved {len(results)} chunks with scores")
+            logger.info(f"Retrieved {len(results)} chunks with scores")
             return results
         except Exception as e:
-            logger.error(f"❌ Error retrieving with scores: {e}")
+            logger.error(f"Error retrieving with scores: {e}")
             return []
 
     def clear_collection(self):
@@ -171,15 +171,38 @@ class EmbeddingService:
         try:
             # Drop the actual collection table within PGVector schema
             self.vector_store.delete_collection()
-            logger.info("⚠️ Collection cleared successfully")
+            logger.info("Collection cleared successfully")
         except Exception as e:
-            logger.error(f"❌ Error clearing collection: {e}")
+            logger.error(f"Error clearing collection: {e}")
 
 
 # Example usage and testing
 if __name__ == "__main__":
     DB_URL = "postgresql+psycopg://sagar:narisetti@localhost:5432/rag_db"
     
+    print("Initializing Bedrock Titan Embeddings...")
+    # Initialize the class. Use your AWS region (e.g., us-east-1)
+    embedder = BedrockTitanEmbeddings(region_name="us-east-1", dimensions=256)
+    
+    # sample text strings
+    sample_query = "Hello world, testing AWS Bedrock connection."
+    sample_docs = ["First test document chunk.", "Second test document chunk."]
+    
+    try:
+        # 3. Test a single query embedding
+        print("Testing single query embedding...")
+        query_vector = embedder.embed_query(sample_query)
+        print(f"Success! Vector length: {len(query_vector)}")
+        print(f"Sample values: {query_vector[:3]}...\n")
+        
+        # 4. Test multiple document embeddings
+        print("Testing document batch embedding...")
+        doc_vectors = embedder.embed_documents(sample_docs)
+        print(f"Success! Generated {len(doc_vectors)} document vectors.")
+        print(f"Batch dimension size matches: {len(doc_vectors[0]) == 256}")
+
+    except Exception as e:
+        print(f"❌ Error occurred during Bedrock API call: {e}")
     # Initialize service with lightweight 256-dimensional vectors
     service = EmbeddingService(
         database_url=DB_URL, 
@@ -187,3 +210,4 @@ if __name__ == "__main__":
         collection_name="document_embeddings", 
         region_name="us-west-1"
         )
+    
