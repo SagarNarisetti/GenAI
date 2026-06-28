@@ -49,7 +49,6 @@ class LLMBase:
                 region_name=self.region_name,
                 temperature=self.temperature,
                 max_tokens=self.max_new_tokens,
-                # Additional Bedrock configurations can go here
             )
             logger.info("AWS Bedrock client initialized successfully")
 
@@ -153,13 +152,13 @@ class LLMBase:
 
 
 if __name__ == "__main__":
-    print("🔧 Initializing LLM Connection via Amazon Bedrock...")
+    print("Initializing LLM Connection via Amazon Bedrock...")
     
     # Instantiate the new class structure
     # Make sure you have setup your AWS credentials in your environment or ~/.aws/credentials
     llm_assistant = LLMBase(
-        model_id="google.gemma-4-12b-it",  # Replace with target active Gemma model ID on Bedrock
-        region_name="us-west-1"
+        model_id="google.gemma-3-12b-it",
+        region_name="us-east-1"
     )
 
     # 1. Test Base Model Connection
