@@ -55,6 +55,7 @@ spec:
         - name: init-script
           configMap:
             name: pg-init-schema
+            
 ---
 # ------------ RAG App (Streamlit + LLM) Deployment -----
 apiVersion: apps/v1
@@ -74,8 +75,8 @@ spec:
     spec:
       containers:
         - name: rag-app
-          image: rag-app:latest
-          imagePullPolicy: Never
+          image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/rag-app:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 8501
           env:
@@ -89,7 +90,6 @@ spec:
               value: "1"
             - name: PYTHONUNBUFFERED
               value: "1"
-
 ---
 
 apiVersion: v1
