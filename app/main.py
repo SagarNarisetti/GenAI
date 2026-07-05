@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 try:
     # Load configuration from YAML
-    config = read_yaml("app/config/params.yaml")
+    config = read_yaml("./app/config/params.yaml")
     model_id = config.get("model_details", {}).get("LLM_model_id")
     temperature = config.get("model_details", {}).get("temperature")
     max_new_tokens = config.get("model_details", {}).get("max_new_tokens")
