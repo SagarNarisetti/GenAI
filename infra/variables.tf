@@ -89,7 +89,7 @@ variable "private_ml_subnet_az" {
 variable "ecr_repository_name" {
     description = "Name of the ECR repository"
     type = string
-    default = "mleng-app-repo"
+    default = "rag-app"
 }
 
 variable "ecr_image_tag_mutability" {

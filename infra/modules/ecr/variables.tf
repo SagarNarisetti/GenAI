@@ -3,7 +3,7 @@
 variable "repository_name" {
   description = "Name of the ECR repository"
   type        = string
-  default     = "mleng-app-repo"
+  default     = "rag-app"
 }
 
 variable "image_tag_mutability" {
