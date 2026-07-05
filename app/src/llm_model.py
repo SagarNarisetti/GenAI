@@ -42,8 +42,7 @@ class LLMBase:
         try:
             logger.info("Initializing LangChain Bedrock Converse client...")
             
-            # Step 1: Initialize connection through ChatBedrockConverse
-            # This replaces local torch/transformers pipelines completely
+            # Step 1: Initialize ChatBedrockConverse
             self.llm = ChatBedrockConverse(
                 model_id=self.model_id,
                 region_name=self.region_name,
