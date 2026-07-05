@@ -18,6 +18,10 @@ kind: Service
 metadata:
   name: rag-app-service
   namespace: rag-app
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "instance"
+    service.beta.kubernetes.io/aws-load-balancer-schema: "internet-facing"
 spec:
   selector:
     app: rag-app
