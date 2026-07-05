@@ -21,6 +21,19 @@ resource "aws_iam_role" "bedrock_pod_role" {
             "${replace(var.oidc_provider_url, "https://", "")}:aud" = "sts.amazonaws.com"
           }
         }
+      },
+      {
+        Sid    = "AllowEksAuthToAssumeRoleForPodIdentity"
+        Effect = "Allow"
+        Action = ["sts:AssumeRole", "sts:TagSession"]
+        Principal = {
+          Service = "pods.eks.amazonaws.com"
+        }
+        Condition = {
+          StringEquals = {
+            "aws:RequestTag/kubernetes-namespace" = [var.bedrock_namespace]
+          }
+        }
       }
     ]
   })
