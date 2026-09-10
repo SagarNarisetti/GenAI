@@ -3,25 +3,12 @@
 # This role is assumed by Kubernetes pods via the OIDC provider
 resource "aws_iam_role" "bedrock_pod_role" {
   name        = "${var.project_name}-bedrock-pod-role"
-  description = "IAM role for Kubernetes pods to access Bedrock via IRSA"
+  description = "IAM role for Kubernetes pods to access Bedrock via Pod Identity"
 
+  # Clean, simple trust policy requiring no string replaces
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Sid    = "AllowPodAssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Federated = var.oidc_provider_arn
-        }
-        Action = "sts:AssumeRoleWithWebIdentity"
-        Condition = {
-          StringEquals = {
-            "${replace(var.oidc_provider_url, "https://", "")}:sub" = "system:serviceaccount:${var.bedrock_namespace}:${var.bedrock_service_account_name}"
-            "${replace(var.oidc_provider_url, "https://", "")}:aud" = "sts.amazonaws.com"
-          }
-        }
-      },
       {
         Sid    = "AllowEksAuthToAssumeRoleForPodIdentity"
         Effect = "Allow"
@@ -29,24 +16,24 @@ resource "aws_iam_role" "bedrock_pod_role" {
         Principal = {
           Service = "pods.eks.amazonaws.com"
         }
-        Condition = {
-          StringEquals = {
-            "aws:RequestTag/kubernetes-namespace" = [var.bedrock_namespace]
-          }
-        }
       }
     ]
   })
 
-  tags = merge(
-    var.tags,
-    {
-      Name        = "${var.project_name}-bedrock-pod-role"
-      Namespace   = var.bedrock_namespace
-      ServiceAccount = var.bedrock_service_account_name
-      Environment = var.environment
-    }
-  )
+  tags = merge(var.tags, {
+    Name           = "${var.project_name}-bedrock-pod-role"
+    Namespace      = var.bedrock_namespace
+    ServiceAccount = var.bedrock_service_account_name
+    Environment    = var.environment
+  })
+}
+
+## association resource 
+resource "aws_eks_pod_identity_association" "bedrock" {
+  cluster_name    = var.eks_cluster_name
+  namespace       = var.bedrock_namespace
+  service_account = var.bedrock_service_account_name
+  role_arn        = aws_iam_role.bedrock_pod_role.arn
 }
 
 # Policy for Bedrock Access
