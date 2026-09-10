@@ -1,0 +1,16 @@
+### floci setup in floci.yml
+services:
+  floci:
+    image: floci/floci:latest
+    container_name: floci
+    ports:
+      - "4566:4566"
+    volumes:
+      - floci-data:/var/lib/floci
+      - /var/run/docker.sock:/var/run/docker.sock # required for Lambda, RDS, Elasticache
+    environment:
+      - FLOCI_LOG_LEVEL=info
+      - FLOCI_DATA_DIR=/var/lib/floci
+    restart: unless-stopped
+volumes:
+  floci-data:
