@@ -73,36 +73,34 @@ spec:
       labels:
         app: rag-app
     spec:
+      serviceAccountName: bedrock-sa
       containers:
-        - name: rag-app
-          image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/rag-app:latest
-          imagePullPolicy: Always
-          ports:
-            - containerPort: 8501
-          env:
-            - name: DATABASE_URL
-              value: "postgresql://sagar:narisetti@postgres-service:5432/myvectordb"
-            - name: HF_HOME
-              value: "/model"
-            - name: TRANSFORMERS_CACHE
-              value: "/model"
-            - name: HF_HUB_OFFLINE
-              value: "1"
-            - name: PYTHONUNBUFFERED
-              value: "1"
----
-
-apiVersion: v1
-kind: Service
-metadata:
-  name: rag-app-service
-  namespace: rag-app
-spec:
-  type: ClusterIP
-  selector:
-    app: rag-app
-  ports:
-    - protocol: TCP
-      port: 8501
-      targetPort: rag-app-port
-      name: rag-app-port
+      - name: rag-app
+        image: 185990503656.dkr.ecr.eu-west-1.amazonaws.com/rag-app:latest
+        imagePullPolicy: Always
+        ports:
+          - containerPort: 8501
+        env:
+          - name: DATABASE_URL
+            valueFrom:
+              secretKeyRef:
+                name: db-credentials
+                key: DATABASE_URL
+          - name: AWS_REGION
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: AWS_REGION
+          - name: AWS_DEFAULT_REGION
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: AWS_DEFAULT_REGION
+          - name: HF_HOME
+            value: "app/cache"
+          - name: TRANSFORMERS_CACHE
+            value: "app/cache"
+          - name: HF_HUB_OFFLINE
+            value: "0"
+          - name: PYTHONUNBUFFERED
+            value: "1"
