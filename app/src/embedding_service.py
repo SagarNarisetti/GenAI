@@ -19,9 +19,12 @@ class BedrockTitanEmbeddings(Embeddings):
     Custom LangChain wrapper for Amazon Titan Text Embeddings V2 
     to handle dynamic dimensional scaling seamlessly.
     """
-    def __init__(self, region_name: str = "us-west-1", dimensions: int = 256):
+    def __init__(self, region_name: str = "us-west-1", dimensions: int = 256, embedding_model: Optional[str] = None):
+        """
+        Initialize the Bedrock Titan Embeddings wrapper.
+        """
         self.client = boto3.client('bedrock-runtime', region_name=region_name)
-        self.model_id = "amazon.titan-embed-text-v2:0"
+        self.model_id = embedding_model
         self.dimensions = dimensions
 
     def _embed_text(self, text: str) -> List[float]:
@@ -59,7 +62,8 @@ class EmbeddingService:
         database_url: str,
         collection_name: str = "document_embeddings",
         region_name: str = "us-west-1",
-        dimensions: int = 256
+        dimensions: int = 256,
+        embedding_model: str = "amazon.titan-embed-text-v2:0"
     ):
         """
         Initialize the embedding service.
@@ -68,6 +72,7 @@ class EmbeddingService:
         self.collection_name = collection_name
         self.region_name = region_name
         self.dimensions = dimensions
+        self.model_id = embedding_model
 
         # Initialize AWS client container for embeddings
         try:
@@ -75,7 +80,8 @@ class EmbeddingService:
             # Use our custom class that mirrors LangChain's embedding contract
             self.embeddings = BedrockTitanEmbeddings(
                 region_name=self.region_name, 
-                dimensions=self.dimensions
+                dimensions=self.dimensions,
+                embedding_model=self.model_id
             )
             logger.info(f"Embedding model configured for {self.dimensions} dimensions")
 
@@ -182,7 +188,7 @@ if __name__ == "__main__":
     
     print("Initializing Bedrock Titan Embeddings...")
     # Initialize the class. Use your AWS region (e.g., us-east-1)
-    embedder = BedrockTitanEmbeddings(region_name="us-east-1", dimensions=256)
+    embedder = BedrockTitanEmbeddings(region_name="eu-west-1", dimensions=256, embedding_model="amazon.titan-embed-text-v2:0")
     
     # sample text strings
     sample_query = "Hello world, testing AWS Bedrock connection."
@@ -208,6 +214,6 @@ if __name__ == "__main__":
         database_url=DB_URL, 
         dimensions=256, 
         collection_name="document_embeddings", 
-        region_name="us-west-1"
+        region_name="eu-west-1"
         )
     
