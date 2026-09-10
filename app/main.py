@@ -28,13 +28,13 @@ logger = logging.getLogger(__name__)
 
 try:
     # Load configuration from YAML
-    config = read_yaml("./app/config/params.yaml")
+    config = read_yaml("config/params.yaml")
     model_id = config.get("model_details", {}).get("LLM_model_id")
     temperature = config.get("model_details", {}).get("temperature")
-    max_new_tokens = config.get("model_details", {}).get("max_new_tokens")
+    max_new_tokens = config.get("model_details", {}).get("max_tokens")
     embedding_model_id = config.get("model_details", {}).get("embedding_model_id")
     aws_region = config.get("model_details", {}).get("region_name")
-    pipeline_name = config.get("model_details", {}).get("pipeline_name")
+    pipeline_name = config.get("model_details", {}).get("pipeline_type")
     SYSTEM_MESSAGE = config.get("prompt", {}).get("system_message")
     CONSTRAINTS = config.get("prompt", {}).get("constraints")
 except FileNotFoundError:
@@ -88,9 +88,10 @@ def initialize_session_state():
         with st.spinner("Connecting to vector database..."):
             st.session_state.embedding_service = EmbeddingService(
                 database_url=DATABASE_URL,
-                embedding_model=embedding_model_id,
+                collection_name = pipeline_name,
+                region_name=aws_region,
                 dimensions=256,
-                region_name=aws_region
+                embedding_model=embedding_model_id,
             )
 
     if "pdf_processed" not in st.session_state:
@@ -251,4 +252,7 @@ def main():
 
 # Run the application
 if __name__ == "__main__":
+    print("starting Streamlit server...")
     main()
+    print("Initialization complete. Launching Streamlit UI...")
+
