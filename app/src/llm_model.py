@@ -20,8 +20,8 @@ class LLMBase:
         region_name: str = "us-west-1",
         temperature: float = 0.7,
         max_new_tokens: int = 512,
-        SYSTEM_MESSAGE: str = "You are a helpful assistant.",
-        CONSTRAINTS: str = (
+        system_message: str = "You are a helpful assistant.",
+        constraints: str = (
             "1. If the answer is not contained within the context below, state clearly that you do not have enough information.\n"
             "2. Do not use outside knowledge or make up facts.\n"
             "3. Keep your response concise and professional."
@@ -32,8 +32,8 @@ class LLMBase:
         self.region_name = region_name
         self.temperature = temperature
         self.max_new_tokens = max_new_tokens
-        self.system_message = SYSTEM_MESSAGE
-        self.constraints = CONSTRAINTS
+        self.system_message = system_message
+        self.constraints = constraints
         self.history = []
 
         logger.info(f"Targeting AWS Bedrock Model ID: {self.model_id}")
